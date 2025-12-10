@@ -1,177 +1,309 @@
 # main.rb
 
+begin
+  class Java::OrgEclipseSwtWidgets::Button
+    def enable_widget(val)
+      self.enabled = val
+    end
+  end
+rescue
+end
+$VERBOSE = nil
+
 require 'shoes'
 require_relative 'RPTLS'
 
-Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 700, resizable: false) do
-  background "#1e1e1e"
-  ##Definir formato para el heading y labels
+Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 750, resizable: false) do
+  # Paleta de colores
+  @color_fondo = "#1e293b"
+  @color_secundario = "#1e293b"
+  @color_acento = "#3b82f6"
+  @color_acento2 = "#8b5cf6"
+  @color_texto = "#f1f5f9"
+  @color_texto_sec = "#94a3b8"
+  @color_exito = "#10b981"
+  @color_peligro = "#ef4444"
+  
+  background @color_fondo
+  
+  #Definir formato para el heading y labels
   def heading(txt)
-    # Helper para títulos consistentes.
-    para strong(txt), stroke: white, size: 22, align: "center"
+    para strong(txt), stroke: @color_texto, size: 28, align: "center", margin_bottom: 10
+  end
+
+  def subheading(txt)
+    para strong(txt), stroke: @color_acento, size: 18, align: "left", margin_bottom: 5
   end
 
   def label_text(txt)
-    # Helper para etiquetas pequeñas en blanco.
-    para txt, stroke: white, size: 12
+    para txt, stroke: @color_texto, size: 13, margin_bottom: 5
   end
+  
+  def label_text_sec(txt)
+    para txt, stroke: @color_texto_sec, size: 11, margin_bottom: 3
+  end
+  
   # Pantalla inicial de configuración
-  stack(margin: 50) do
-    heading "Piedra, Papel, Tijera, Lagarto, Spock"
+  stack(margin: 0.01) do
+    @time_display = para ""
 
-    # Nombres
-    stack(margin_top: 30) do
-      label_text "Nombre del Jugador 1:"
-      @name1 = edit_line("Jugador1", width: 200)
-      label_text "Nombre del Jugador 2:"
-      @name2 = edit_line("Jugador2", width: 200)
+  every(1) do # Ejecuta el bloque cada segundo
+    @time_display.text = ""
+  end
+    # Título principal centrado
+    stack(margin_bottom: 5) do
+      heading "Piedra, Papel, Tijera, Lagarto, Spock"
+      para "Configura tu partida", stroke: @color_texto_sec, size: 14, align: "center"
     end
 
-    # Modo de juego
-    stack(margin_top: 10) do
-      label_text "Modo de juego:"
-      flow(margin_top: 5) do
-        @rb_rondas   = radio :modo; para "Rondas", stroke: white, margin_right: 40
-        @rb_alcanzar = radio :modo; para "Alcanzar", stroke: white
-      end
-      @rb_rondas.checked
-    end
-
-    # Objetivo (N)
-    stack(margin_top: 10) do
-      label_text "Cantidad de rondas/puntos (N):"
-      @objetivo = edit_line("5", width: 60)
-    end
-
-    # Estrategia Jugador 1
-    stack(margin_top: 10) do
-      label_text "Estrategia del Jugador 1:"
-      flow(margin_top: 5) do
-        @rb_manual   = radio :estrategia1; para "Manual", stroke: white, margin_right: 40
-        @rb_uniforme = radio :estrategia1; para "Uniforme", stroke: white, margin_right: 40
-        @rb_sesgada  = radio :estrategia1; para "Sesgada", stroke: white, margin_right: 40
-        @rb_copiar   = radio :estrategia1; para "Copiar", stroke: white, margin_right: 40
-        @rb_pensar   = radio :estrategia1; para "Pensar", stroke: white
-      end
-      @rb_manual.checked
-
-      # Bloque de pesos si se escoge Sesgada
-      @sesgada_pesos1 = stack(margin_top: 25) do
-        label_text "Pesos (Jugador 1):"
-        flow do
-          para "Piedra", stroke: white;  @peso_piedra1  = edit_line("5", width: 40)
-          para "Papel", stroke: white;   @peso_papel1   = edit_line("1", width: 40)
-          para "Tijera", stroke: white;  @peso_tijera1  = edit_line("1", width: 40)
-          para "Lagarto", stroke: white; @peso_lagarto1 = edit_line("1", width: 40)
-          para "Spock", stroke: white;   @peso_spock1   = edit_line("1", width: 40)
+    #contenedor centrado para el formulario
+    stack(width: 800, margin: "0 auto") do
+      stack(margin_top: 5, margin_right:20, margin_left:20, margin_bottom: 15) do
+        subheading "Jugadores"
+        flow(margin_top: 10) do
+          stack(width: 0.48) do
+            label_text "Jugador 1:"
+            @name1 = edit_line("Jugador1", width: 350)
+          end
+          stack(width: 0.04) {}
+          stack(width: 0.48) do
+            label_text "Jugador 2:"
+            @name2 = edit_line("Jugador2", width: 350)
+          end
         end
       end
-      @sesgada_pesos1.hide
-
-      # Bloque de opciones si se escoge Uniforme
-      @uniforme_opciones1 = stack(margin_top: 10) do
-        label_text "Opciones para Uniforme (Jugador 1):"
-        flow do
-          @chk_piedra1  = check; para "Piedra", stroke: white, margin_right: 20
-          @chk_papel1   = check; para "Papel", stroke: white, margin_right: 20
-          @chk_tijera1  = check; para "Tijera", stroke: white, margin_right: 20
-          @chk_lagarto1 = check; para "Lagarto", stroke: white, margin_right: 20
-          @chk_spock1   = check; para "Spock", stroke: white
+      stack(margin_top: 15, margin_right:20, margin_left:20, margin_bottom: 15) do
+        subheading "Configuración del Juego"
+        
+        flow(margin_top: 10) do
+          stack(width: 0.48) do
+            label_text "Modo de juego:"
+            flow(margin_top: 5) do
+              @rb_rondas   = radio :modo; para "Rondas", stroke: @color_texto, margin_right: 30
+              @rb_alcanzar = radio :modo; para "Alcanzar", stroke: @color_texto
+            end
+            @rb_rondas.checked = true
+          end
+          
+          stack(width: 0.04) {}
+          
+          stack(width: 0.48) do
+            label_text "Cantidad de rondas/puntos (N):"
+            @objetivo = edit_line("5", width: 100)
+          end
         end
       end
-      @uniforme_opciones1.hide
-
-      # Lógica de mostrar/ocultar
-      @rb_manual.click do
+      stack(margin_top: 15, margin_right:20, margin_left:20, margin_bottom: 15) do
+        subheading "Estrategia del Jugador 1"
+        
+        flow(margin_top: 10) do
+          @rb_manual   = radio :estrategia; para "Manual", stroke: @color_texto, margin_right: 20
+          @rb_uniforme = radio :estrategia; para "Uniforme", stroke: @color_texto, margin_right: 20
+          @rb_sesgada  = radio :estrategia; para "Sesgada", stroke: @color_texto, margin_right: 20
+          @rb_copiar   = radio :estrategia; para "Copiar", stroke: @color_texto, margin_right: 20
+          @rb_pensar   = radio :estrategia; para "Pensar", stroke: @color_texto
+        end
+        @rb_manual.checked = true
+        
+        #si se escoge Sesgada
+        @sesgada_pesos1 = stack(margin_top: 15) do
+          background @color_fondo, curve: 8
+          stack(margin: 15) do
+            label_text_sec "Ajusta los pesos para cada opción:"
+            flow(margin_top: 8) do
+              stack(width: 0.19) do
+                para "Piedra", stroke: @color_texto_sec, size: 11
+                @peso_piedra1 = edit_line("5", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Papel", stroke: @color_texto_sec, size: 11
+                @peso_papel1 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Tijera", stroke: @color_texto_sec, size: 11
+                @peso_tijera1 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Lagarto", stroke: @color_texto_sec, size: 11
+                @peso_lagarto1 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Spock", stroke: @color_texto_sec, size: 11
+                @peso_spock1 = edit_line("1", width: 60)
+              end
+            end
+          end
+        end
         @sesgada_pesos1.hide
+
+        #si se escoge Uniforme
+        @uniforme_opciones1 = stack(margin_top: 15) do
+          stack(margin: 15) do
+            label_text_sec "Selecciona las opciones disponibles:"
+            flow(margin_top: 8) do
+              @chk_piedra1  = check; para "Piedra", stroke: @color_texto_sec, margin_right: 15
+              @chk_papel1   = check; para "Papel", stroke: @color_texto_sec, margin_right: 15
+              @chk_tijera1  = check; para "Tijera", stroke: @color_texto_sec, margin_right: 15
+              @chk_lagarto1 = check; para "Lagarto", stroke: @color_texto_sec, margin_right: 15
+              @chk_spock1   = check; para "Spock", stroke: @color_texto_sec
+            end
+          end
+        end
         @uniforme_opciones1.hide
-      end
 
-      @rb_uniforme.click do
-        @sesgada_pesos1.hide
-        @uniforme_opciones1.show
-      end
-
-      @rb_sesgada.click do
-        @uniforme_opciones1.hide
-        @sesgada_pesos1.show
-      end
-
-      [@rb_copiar, @rb_pensar].each do |rb|
-        rb.click do
+        @rb_manual.click do
           @sesgada_pesos1.hide
           @uniforme_opciones1.hide
+          @rb_uniforme.checked = false 
+          @rb_sesgada.checked  = false
+          @rb_copiar.checked   = false
+          @rb_pensar.checked   = false
+        end
+
+        @rb_uniforme.click do
+          @sesgada_pesos1.hide
+          @uniforme_opciones1.show
+          @rb_manual.checked = false 
+          @rb_sesgada.checked  = false
+          @rb_copiar.checked   = false
+          @rb_pensar.checked   = false
+        end
+
+        @rb_sesgada.click do
+          @uniforme_opciones1.hide
+          @sesgada_pesos1.show
+          @rb_manual.checked = false 
+          @rb_uniforme.checked = false
+          @rb_copiar.checked   = false
+          @rb_pensar.checked   = false
+        end
+
+        @rb_copiar.click do
+          @sesgada_pesos1.hide
+          @uniforme_opciones1.hide
+          @rb_manual.checked = false 
+          @rb_uniforme.checked = false
+          @rb_sesgada.checked  = false
+          @rb_pensar.checked   = false
+        end
+        
+        @rb_pensar.click do
+          @sesgada_pesos1.hide
+          @uniforme_opciones1.hide
+          @rb_manual.checked = false 
+          @rb_uniforme.checked = false
+          @rb_sesgada.checked  = false
+          @rb_copiar.checked   = false
         end
       end
-    end
-
-    # Estrategia Jugador 2
-    stack(margin_top: 60) do
-      label_text "Estrategia del Jugador 2:"
-      flow(margin_top: 5) do
-        @rb2_manual   = radio :estrategia2; para "Manual", stroke: white, margin_right: 40
-        @rb2_uniforme = radio :estrategia2; para "Uniforme", stroke: white, margin_right: 40
-        @rb2_sesgada  = radio :estrategia2; para "Sesgada", stroke: white, margin_right: 40
-        @rb2_copiar   = radio :estrategia2; para "Copiar", stroke: white, margin_right: 40
-        @rb2_pensar   = radio :estrategia2; para "Pensar", stroke: white
-      end
-      @rb2_manual.checked
-
-      # Bloque de pesos si se escoge Sesgada
-      @sesgada_pesos2 = stack(margin_top: 25) do
-        label_text "Pesos (Jugador 2):"
-        flow do
-          para "Piedra", stroke: white;  @peso_piedra2  = edit_line("5", width: 40)
-          para "Papel", stroke: white;   @peso_papel2   = edit_line("1", width: 40)
-          para "Tijera", stroke: white;  @peso_tijera2  = edit_line("1", width: 40)
-          para "Lagarto", stroke: white; @peso_lagarto2 = edit_line("1", width: 40)
-          para "Spock", stroke: white;   @peso_spock2   = edit_line("1", width: 40)
+      stack(margin_top: 15, margin_right:20, margin_left:20, margin_bottom: 15) do
+        subheading "Estrategia del Jugador 2"
+        
+        flow(margin_top: 10) do
+          @rb2_manual   = radio :estrategia2; para "Manual", stroke: @color_texto, margin_right: 20
+          @rb2_uniforme = radio :estrategia2; para "Uniforme", stroke: @color_texto, margin_right: 20
+          @rb2_sesgada  = radio :estrategia2; para "Sesgada", stroke: @color_texto, margin_right: 20
+          @rb2_copiar   = radio :estrategia2; para "Copiar", stroke: @color_texto, margin_right: 20
+          @rb2_pensar   = radio :estrategia2; para "Pensar", stroke: @color_texto
         end
-      end
-      @sesgada_pesos2.hide
+        @rb2_manual.checked = true
 
-      # Bloque de opciones si se escoge Uniforme
-      @uniforme_opciones2 = stack(margin_top: 10) do
-        label_text "Opciones para Uniforme (Jugador 2):"
-        flow do
-          @chk_piedra2  = check; para "Piedra", stroke: white, margin_right: 20
-          @chk_papel2   = check; para "Papel", stroke: white, margin_right: 20
-          @chk_tijera2  = check; para "Tijera", stroke: white, margin_right: 20
-          @chk_lagarto2 = check; para "Lagarto", stroke: white, margin_right: 20
-          @chk_spock2   = check; para "Spock", stroke: white
+        #si se escoge Sesgada
+        @sesgada_pesos2 = stack(margin_top: 15) do
+          stack(margin: 15) do
+            label_text_sec "Ajusta los pesos para cada opción:"
+            flow(margin_top: 8) do
+              stack(width: 0.19) do
+                para "Piedra", stroke: @color_texto_sec, size: 11
+                @peso_piedra2 = edit_line("5", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Papel", stroke: @color_texto_sec, size: 11
+                @peso_papel2 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Tijera", stroke: @color_texto_sec, size: 11
+                @peso_tijera2 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Lagarto", stroke: @color_texto_sec, size: 11
+                @peso_lagarto2 = edit_line("1", width: 60)
+              end
+              stack(width: 0.19) do
+                para "Spock", stroke: @color_texto_sec, size: 11
+                @peso_spock2 = edit_line("1", width: 60)
+              end
+            end
+          end
         end
-      end
-      @uniforme_opciones2.hide
-
-      # Lógica de mostrar/ocultar
-      @rb2_manual.click do
         @sesgada_pesos2.hide
+
+        #si se escoge Uniforme
+        @uniforme_opciones2 = stack(margin_top: 15) do
+          stack(margin: 15) do
+            label_text_sec "Selecciona las opciones disponibles:"
+            flow(margin_top: 8) do
+              @chk_piedra2  = check; para "Piedra", stroke: @color_texto_sec, margin_right: 15
+              @chk_papel2   = check; para "Papel", stroke: @color_texto_sec, margin_right: 15
+              @chk_tijera2  = check; para "Tijera", stroke: @color_texto_sec, margin_right: 15
+              @chk_lagarto2 = check; para "Lagarto", stroke: @color_texto_sec, margin_right: 15
+              @chk_spock2   = check; para "Spock", stroke: @color_texto_sec
+            end
+          end
+        end
         @uniforme_opciones2.hide
-      end
 
-      @rb2_uniforme.click do
-        @sesgada_pesos2.hide
-        @uniforme_opciones2.show
-      end
-
-      @rb2_sesgada.click do
-        @uniforme_opciones2.hide
-        @sesgada_pesos2.show
-      end
-
-      [@rb2_copiar, @rb2_pensar].each do |rb|
-        rb.click do
+        #logica de mostrar/ocultar
+        @rb2_manual.click do
           @sesgada_pesos2.hide
           @uniforme_opciones2.hide
+          @rb2_uniforme.checked = false 
+          @rb2_sesgada.checked  = false
+          @rb2_copiar.checked   = false
+          @rb2_pensar.checked   = false
+
+        end
+
+        @rb2_uniforme.click do
+          @sesgada_pesos2.hide
+          @uniforme_opciones2.show
+          @rb2_manual.checked = false 
+          @rb2_sesgada.checked  = false
+          @rb2_copiar.checked   = false
+          @rb2_pensar.checked   = false
+        end
+
+        @rb2_sesgada.click do
+          @uniforme_opciones2.hide
+          @sesgada_pesos2.show
+          @rb2_manual.checked = false 
+          @rb2_uniforme.checked = false
+          @rb2_copiar.checked   = false
+          @rb2_pensar.checked   = false
+        end
+        @rb2_copiar.click do
+          @sesgada_pesos2.hide
+          @uniforme_opciones2.hide
+          @rb2_manual.checked = false 
+          @rb2_uniforme.checked = false
+          @rb2_sesgada.checked  = false
+          @rb2_pensar.checked   = false
+        end
+        @rb2_pensar.click do
+          @sesgada_pesos2.hide
+          @uniforme_opciones2.hide
+          @rb2_manual.checked = false 
+          @rb2_uniforme.checked = false
+          @rb2_sesgada.checked  = false
+          @rb2_copiar.checked   = false
         end
       end
     end
 
-
-    # Botón iniciar
-    stack(margin_top: 40, align: "center") do
-      button "Iniciar juego" do
-        # Lee configuracion inicial y normaliza valores vacios o invalidos.
+    #boton iniciar
+    stack(margin_top: 30, align: "center") do
+      button "Iniciar Juego", width: 200, height: 50 do
+        #lee configuracion inicial y corrige valores vacios o invalidos
         nombre1 = @name1.text.strip
         nombre1 = "Jugador1" if nombre1.empty?
         nombre2 = @name2.text.strip
@@ -180,11 +312,9 @@ Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 70
         objetivo = @objetivo.text.to_i
         objetivo = 1 if objetivo <= 0
 
-        # Estrategia Jugador 1
+        #estrategia Jugador 1
         estrategia1 =
-          #Si escoge Manual
           if @rb_manual.checked?   then Manual.new
-          #Si escoge Uniforme crea lista con las opciones seleccionadas
           elsif @rb_uniforme.checked?
             lista = []
             lista << Piedra  if @chk_piedra1.checked?
@@ -199,7 +329,6 @@ Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 70
             end
 
             Uniforme.new(lista)
-          #Si escoge Sesgada se crea un hash con los pesos
           elsif @rb_sesgada.checked?
             pesos = {
               Piedra  => (@peso_piedra1.text.to_i rescue 0),
@@ -213,17 +342,16 @@ Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 70
               pesos = { Piedra=>5, Papel=>1, Tijera=>1, Lagarto=>1, Spock=>1 }
             end
             Sesgada.new(pesos)
-          #Si escoge Copiar
           elsif @rb_copiar.checked?   then Copiar.new
-          #Si escoge Pensar
           elsif @rb_pensar.checked?   then Pensar.new
+          else
+            alert "Debes seleccionar al menos una opción para la estrategia del Jugador 1." 
+            return
           end
 
         # Estrategia Jugador 2
         estrategia2 =
-          #Si escoge Manual
           if @rb2_manual.checked?   then Manual.new
-          #Si escoge Uniforme crea lista con las opciones seleccionadas
           elsif @rb2_uniforme.checked? 
             lista = []
             lista << Piedra  if @chk_piedra2.checked?
@@ -238,9 +366,7 @@ Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 70
             end
 
             Uniforme.new(lista)
-
           elsif @rb2_sesgada.checked?
-            #Si escoge Sesgada se crea un hash con los pesos
             pesos = {
               Piedra  => (@peso_piedra2.text.to_i rescue 0),
               Papel   => (@peso_papel2.text.to_i rescue 0),
@@ -253,145 +379,179 @@ Shoes.app(title: "Piedra, Papel, Tijera, Lagarto, Spock", width: 900, height: 70
               pesos = { Piedra=>5, Papel=>1, Tijera=>1, Lagarto=>1, Spock=>1 }
             end
             Sesgada.new(pesos)
-          #Si escoge Copiar
           elsif @rb2_copiar.checked?   then Copiar.new
-          #Si escoge Pensar
           elsif @rb2_pensar.checked?   then Pensar.new
+          else 
+            alert "Debes seleccionar al menos una opción para la estrategia del Jugador 2."
+            return
           end
 
-        # Instanciar Partida y montar pantalla de juego
+        #inicio de Partida y montar pantalla de juego
         partida = Partida.new(nombre1, estrategia1, nombre2, estrategia2, modo, objetivo)
 
-        # Limpiar pantalla y montar UI de juego
+        #limpiar pantalla y montar UI de juego
         clear do
-          background "#222"
+          background @color_fondo
 
-          # Header
-          stack do
-            para "Bienvenido #{nombre1} vs #{nombre2}", stroke: white, size: 20
-            para "Modo: #{modo} (N = #{objetivo})", stroke: white, size: 16
-          end
-
-          # Marcadores
-          @score_flow = flow(margin_top: 10) do
-            @score1 = para "#{nombre1}: 0", stroke: white, size: 14, margin_right: 40
-            @score2 = para "#{nombre2}: 0", stroke: white, size: 14
-          end
-          
-          # Columnas de botones para jugadas manuales
-          # Solo se usan cuando la estrategia es Manual; las otras ignoran estos botones.
-          @manual_buttons = flow(margin_top: 20) do
-
-            # Columna Jugador 1
-          stack(width: 0.5) do
-            para "#{nombre1} (elige jugada):", stroke: white
-            # Mostrar botones solo si es Manual
-            if estrategia1.is_a?(Manual)
-              @jugada_label1 = para "Sin elección", stroke: white, margin_top: 5
-
-              @btn_piedra1  = image("fotos/roca.png", width: 80, height: 80).click do
-                @jugada_manual1 = Piedra.new
-                @jugada_label1.text = "Eligió: Roca"
+          stack(margin: 30) do
+            stack(margin_bottom: 20) do
+              background @color_secundario, curve: 10
+              stack(margin: 20) do
+                para "#{nombre1} vs #{nombre2}", stroke: @color_texto, size: 24, align: "center"
+                para "Modo: #{modo} | Objetivo: #{objetivo}", stroke: @color_texto_sec, size: 14, align: "center"
               end
-              @btn_papel1   = image("fotos/papel.png",  width: 80, height: 80).click do
-                @jugada_manual1 = Papel.new
-                @jugada_label1.text = "Eligió: Papel"
-              end
-              @btn_tijera1  = image("fotos/tijera.png", width: 80, height: 80).click do
-                @jugada_manual1 = Tijera.new
-                @jugada_label1.text = "Eligió: Tijera"
-              end
-              @btn_lagarto1 = image("fotos/lagarto.png",width: 80, height: 80).click do
-                @jugada_manual1 = Lagarto.new
-                @jugada_label1.text = "Eligió: Lagarto"
-              end
-              @btn_spock1   = image("fotos/spock.png",  width: 80, height: 80).click do
-                @jugada_manual1 = Spock.new
-                @jugada_label1.text = "Eligió: Spock"
-              end
-            else
-              # Estrategia automática: no se muestran botones, solo el label
-              @jugada_label1 = para "Automático", stroke: white, margin_top: 5
             end
-          end
-
-            # Columna Jugador 2
-          stack(width: 0.5) do
-            para "#{nombre2} (elige jugada):", stroke: white
-            # Mostrar botones solo si es Manual
-            if estrategia2.is_a?(Manual)
-              @jugada_label2 = para "Sin elección", stroke: white, margin_top: 5
-
-              @btn_piedra2  = image("fotos/roca.png", width: 80, height: 80).click do
-                @jugada_manual2 = Piedra.new
-                @jugada_label2.text = "Eligió: Roca"
+            #marcador de puntos
+            @score_flow = stack(margin_bottom: 20) do
+              background @color_secundario, curve: 10
+              flow(margin: 20) do
+                stack(width: 0.46) do
+                  background @color_acento, curve: 8
+                  stack(margin: 15) do
+                    @score1 = para "#{nombre1}\n0 puntos", stroke: white, size: 16, align: "center"
+                  end
+                end
+                
+                stack(width: 0.08) do
+                  para "VS", stroke: @color_texto_sec, size: 18, align: "center", margin_top: 15
+                end
+                
+                stack(width: 0.46) do
+                  background @color_acento2, curve: 8
+                  stack(margin: 15) do
+                    @score2 = para "#{nombre2}\n0 puntos", stroke: white, size: 16, align: "center"
+                  end
+                end
               end
-              @btn_papel2   = image("fotos/papel.png",  width: 80, height: 80).click do
-                @jugada_manual2 = Papel.new
-                @jugada_label2.text = "Eligió: Papel"
-              end
-              @btn_tijera2  = image("fotos/tijera.png", width: 80, height: 80).click do
-                @jugada_manual2 = Tijera.new
-                @jugada_label2.text = "Eligió: Tijera"
-              end
-              @btn_lagarto2 = image("fotos/lagarto.png", width: 80, height: 80).click do
-                @jugada_manual2 = Lagarto.new
-                @jugada_label2.text = "Eligió: Lagarto"
-              end
-              @btn_spock2   = image("fotos/spock.png",  width: 80, height: 80).click do
-                @jugada_manual2 = Spock.new
-                @jugada_label2.text = "Eligió: Spock"
-              end
-            else
-              @jugada_label2 = para "Automático", stroke: white, margin_top: 5
             end
-          end
+            
+            #columnas de botones para jugadas manuales
+            @manual_buttons = stack(margin_bottom: 20) do
+              background @color_secundario, curve: 10
+              stack(margin: 20) do
+                flow do
+                  #columna Jugador 1
+                  stack(width: 0.48) do
+                    para "#{nombre1}", stroke: @color_acento, size: 16, align: "center"
+                    
+                    if estrategia1.is_a?(Manual)
+                      @jugada_label1 = para "Selecciona tu jugada", stroke: @color_texto_sec, margin_top: 10, align: "center"
 
-          end
-          # Visual de la ronda y jugadas
-          @ronda_info = stack(margin_top: 10) do
-            @ronda_label = para "Ronda: 0", stroke: white, size: 14
-            @jugadas_label = para "Esperando jugadas...", stroke: white, size: 14
-          end
+                      flow(margin_top: 10) do
+                        @btn_piedra1  = image("fotos/roca.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual1 = Piedra.new
+                          @jugada_label1.text = "Roca"
+                        end
+                        @btn_papel1   = image("fotos/papel.png",  width: 70, height: 70, margin: 5).click do
+                          @jugada_manual1 = Papel.new
+                          @jugada_label1.text = "Papel"
+                        end
+                        @btn_tijera1  = image("fotos/tijera.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual1 = Tijera.new
+                          @jugada_label1.text = "Tijera"
+                        end
+                        @btn_lagarto1 = image("fotos/lagarto.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual1 = Lagarto.new
+                          @jugada_label1.text = "Lagarto"
+                        end
+                        @btn_spock1   = image("fotos/spock.png",  width: 70, height: 70, margin: 5).click do
+                          @jugada_manual1 = Spock.new
+                          @jugada_label1.text = "Spock"
+                        end
+                      end
+                    else
+                      @jugada_label1 = para "Automático", stroke: @color_exito, margin_top: 10, align: "center", size: 14
+                    end
+                  end
 
-          # Botón avanzar
-          @btn_next = button "Siguiente ronda"
+                  stack(width: 0.04) {}
 
-          # Lógica del botón avanzar (soporta Manual y automáticas)
-          @btn_next.click do
-            # Construir jugadas según estrategia
-            jugada1 =
-              if estrategia1.is_a?(Manual)
-                # Puede quedar nil si el jugador no seleccionó; se valida implícitamente al puntuar.
-                @jugada_manual1
-              else
-                estrategia1.prox
+                  #columna Jugador 2
+                  stack(width: 0.48) do
+                    para "#{nombre2}", stroke: @color_acento2, size: 16, align: "center"
+                    
+                    if estrategia2.is_a?(Manual)
+                      @jugada_label2 = para "Selecciona tu jugada", stroke: @color_texto_sec, margin_top: 10, align: "center"
+
+                      flow(margin_top: 10) do
+                        @btn_piedra2  = image("fotos/roca.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual2 = Piedra.new
+                          @jugada_label2.text = "Roca"
+                        end
+                        @btn_papel2   = image("fotos/papel.png",  width: 70, height: 70, margin: 5).click do
+                          @jugada_manual2 = Papel.new
+                          @jugada_label2.text = "Papel"
+                        end
+                        @btn_tijera2  = image("fotos/tijera.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual2 = Tijera.new
+                          @jugada_label2.text = "Tijera"
+                        end
+                        @btn_lagarto2 = image("fotos/lagarto.png", width: 70, height: 70, margin: 5).click do
+                          @jugada_manual2 = Lagarto.new
+                          @jugada_label2.text = "Lagarto"
+                        end
+                        @btn_spock2   = image("fotos/spock.png",  width: 70, height: 70, margin: 5).click do
+                          @jugada_manual2 = Spock.new
+                          @jugada_label2.text = "Spock"
+                        end
+                      end
+                    else
+                      @jugada_label2 = para "Automático", stroke: @color_exito, margin_top: 10, align: "center", size: 14
+                    end
+                  end
+                end
               end
-
-            jugada2 =
-              if estrategia2.is_a?(Manual)
-                # Si el oponente usa Manual, igual le mostramos diálogo
-                @jugada_manual2
-              else
-                estrategia2.prox(jugada1)
+            end
+            
+            #vista de la ronda y jugadas
+            @ronda_info = stack(margin_bottom: 20) do
+              background @color_secundario, curve: 10
+              stack(margin: 20) do
+                @ronda_label = para "Ronda: 0", stroke: @color_texto, size: 16, align: "center"
+                @jugadas_label = para "Esperando jugadas...", stroke: @color_texto_sec, size: 14, align: "center", margin_top: 5
               end
+            end
 
-            j1, j2, puntos = partida.jugar_ronda_con(jugada1, jugada2)
+            #boton avanzar centrado
+            stack(align: "center") do
+              @btn_next = button "Siguiente Ronda", width: 250, height: 50
+            end
 
-            # Actualizar UI
-            @ronda_label.text = "Ronda: #{partida.ronda_actual}"
-            @jugadas_label.text = "#{nombre1} juega #{j1} | #{nombre2} juega #{j2}"
-            @score1.text = "#{nombre1}: #{partida.jugador1[:score]}"
-            @score2.text = "#{nombre2}: #{partida.jugador2[:score]}"
+            @btn_next.click do
+              #construir jugadas y jugar ronda
+              jugada1 =
+                if estrategia1.is_a?(Manual)
+                  @jugada_manual1
+                else
+                  estrategia1.prox
+                end
 
-            # Fin de partida
-            if partida.terminado?
-              ganador = partida.ganador
-              @btn_next.state = "disabled"
-              if ganador == "Empate"
-                alert "Juego terminado. Empate."
-              else
-                alert "Juego terminado. Ganador: #{ganador}"
+              jugada2 =
+                if estrategia2.is_a?(Manual)
+                  @jugada_manual2
+                else
+                  estrategia2.prox(jugada1)
+                end
+
+              j1, j2, puntos = partida.jugar_ronda_con(jugada1, jugada2)
+
+              #actualizar UI
+              @ronda_label.text = "Ronda: #{partida.ronda_actual}"
+              @jugadas_label.text = "#{nombre1} juega #{j1} | #{nombre2} juega #{j2}"
+              @score1.text = "#{nombre1}\n#{partida.jugador1[:score]} puntos"
+              @score2.text = "#{nombre2}\n#{partida.jugador2[:score]} puntos"
+
+              # Fin de partida
+              if partida.terminado?
+                ganador = partida.ganador
+                @btn_next.state = "disabled"
+                if ganador == "Empate"
+                  alert "Juego terminado. ¡Empate!"
+                  return
+                else
+                  alert "Juego terminado. ¡Ganador: #{ganador}!"
+                  return
+                end
               end
             end
           end
